@@ -1,0 +1,94 @@
+---
+title: "Preprocess"
+author: "Edgar Pardo"
+date: "11/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# PANAMA PAPERS
+
+## PREPROCESSING
+
+This is an R Markdown document which processes $Panama Papers$ released by ICIJ[1]. Specifically, it parses relationship `csv`. 
+
+`all_edges.csv` file contains all relationships that has been stablished between each kind of node. Each relation falls under one of three relation types, namely *registered_address*, *intermediary_of* and *officer_of*. However, *officer_of* has specific subtypes and so we are going to normalize terms:
+
+```{r cars}
+edges <- read.csv('all_edges.csv', stringsAsFactors = FALSE)
+cat("Rows:", dim(edges)[1])
+cat('Cols:', dim(edges)[2])
+```
+File can be inspected:
+```{r}
+str(edges)
+summary(edges)
+```
+Then we can check there is no null values:
+```{r}
+colSums(is.na(edges))
+```
+As stated, there are three kind of relationships:
+```{r}
+occurrences <- table(edges$TYPE)
+occurrences
+```
+If we focus on $link$ column which contain relationship subtypes:
+```{r}
+occurrences <- table(edges$link)
+occurrences
+```
+There are 33 kinds of relationships, 31 of them are subtypes on *officer_of*. In order to simplify graph and the subsequent analysis, we will normalize subtypes which has less than 30 occurrences as *officer_of*. It's contribution to probability distribution is extremely small compared with the total amount of existing relationships.
+
+```{r}
+library(dplyr)
+newd <-  edges %>% group_by(link) %>% filter(n()>30) #
+occurrences <- as.data.frame(table(newd$link))
+occurrences
+```
+Filtering by subtypes which has more than 30 occurrences,we ended up with 6 kind of relationships. However, *beneficional owener of* and *beneficiary of* can be merged as one, as they refer to same concept:
+
+```{r}
+array <-  as.vector(occurrences$Var1)
+edges_parsed <- within(edges, link[ link == "beneficial owner of"] <- 'beneficiary of')
+edges_parsed <- within(edges_parsed, link[ !(link %in% array)] <- 'officer_of')
+```
+
+```{r}
+new_occurrencies <- table(edges_parsed$link)
+new_occurrencies
+```
+Following neo4j admin import documentation[2], relationship CSV must contain 3 mandatory column fields:
+
+  1. START_ID — ID refering to a node.
+
+  2. END_ID — ID refering to a node.
+
+  3. TYPE — The relationship type.
+
+We are going to overwrite 2nd column with values processed on $link$ dataframe column:
+```{r}
+#edges_parsed$TYPE <- gsub('\\s+', '_', edges_parsed$link)
+#new_occurrencies <- table(edges_parsed$TYPE)
+#new_occurrencies
+edges_parsed$TYPE <- edges_parsed$link
+```
+CSV export:
+```{r}
+write.csv(edges_parsed, file = "../../data/edges_parsed.csv",row.names = FALSE)
+```
+
+
+## Resources
+
+[1] https://offshoreleaks.icij.org/
+
+[2] https://neo4j.com/docs/operations-manual/current/tutorial/neo4j-admin-import/
+
+
+
+
+
