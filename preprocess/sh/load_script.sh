@@ -18,28 +18,22 @@ for i in Entity Officer Intermediary; do
    echo "node_id:START_ID($i),detail,node_id:END_ID(Address)" > $IMPORT_PATH/registered_address_$i.csv
 done
 
+for i in Entity Officer; do
+   echo "node_id:START_ID(Intermediary),detail,node_id:END_ID($i)" > $IMPORT_PATH/intermediary_of_$i.csv
+done
+
+for i in Entity Intermediary; do
+   echo "node_id:START_ID(Officer),detail,node_id:END_ID($i)" > $IMPORT_PATH/Officer_of_$i.csv
+done
+
+echo Generating relationships
 
 grep 'registered address' $IMPORT_PATH/all_edges_fixed.csv > $IMPORT_PATH/registered_address.csv
 grep 'beneficiary of'     $IMPORT_PATH/all_edges_fixed.csv > $IMPORT_PATH/beneficiary_of.csv
 grep 'shareholder of'     $IMPORT_PATH/all_edges_fixed.csv > $IMPORT_PATH/shareholder_of.csv
 grep 'director of'        $IMPORT_PATH/all_edges_fixed.csv > $IMPORT_PATH/director_of.csv
-
-
-for i in Entity Intermediary; do 
-   echo "node_id:START_ID(Officer),detail,node_id:END_ID($i)" > $IMPORT_PATH/officer_of_$i.csv
-done
-
-echo Generating relationships
-
-tr '[:upper:]' '[:lower:]' < $IMPORT_PATH/all_edges_fixed.csv | grep -v "\(intermediary of\|registered address\|beneficiary of\|shareholder of\|director of\)" > $IMPORT_PATH/officer_of.csv
-
-for i in Entity; do 
-   echo "node_id:START_ID(Intermediary),detail,node_id:END_ID($i)" > $IMPORT_PATH/intermediary_of_$i.csv
-done
-
-sed -e 's/,intermediary of,/,,/' < $IMPORT_PATH/all_edges_fixed.csv > $IMPORT_PATH/intermediary_of.csv
-
-echo  Importing ...
+grep 'officer of'         $IMPORT_PATH/all_edges_fixed.csv > $IMPORT_PATH/officer_of.csv
+grep 'intermediary of'    $IMPORT_PATH/all_edges_fixed.csv > $IMPORT_PATH/intermediary_of.csv
 
 
 $HOME/bin/neo4j-admin import --database=$DB --nodes=Address=$IMPORT_PATH/Addresses_fixed.csv --nodes=Entity=$IMPORT_PATH/Entities_fixed.csv --nodes=Intermediary=$IMPORT_PATH/Intermediaries_fixed.csv --nodes=Officer=$IMPORT_PATH/Officers_fixed.csv \
@@ -55,6 +49,7 @@ $HOME/bin/neo4j-admin import --database=$DB --nodes=Address=$IMPORT_PATH/Address
            --relationships=SHAREHOLDER_OF=$IMPORT_PATH/officer_of_Entity.csv,$IMPORT_PATH/shareholder_of.csv \
            --relationships=SHAREHOLDER_OF=$IMPORT_PATH/officer_of_Intermediary.csv,$IMPORT_PATH/shareholder_of.csv \
            --relationships=INTERMEDIARY_OF=$IMPORT_PATH/intermediary_of_Entity.csv,$IMPORT_PATH/intermediary_of.csv \
+	   --relationships=INTERMEDIARY_OF=$IMPORT_PATH/intermediary_of_Officer.csv,$IMPORT_PATH/intermediary_of.csv \
            --skip-duplicate-nodes=true --skip-bad-relationships=true --bad-tolerance=10000000 --multiline-fields=true  --ignore-extra-columns=true
 
 echo  Database creation

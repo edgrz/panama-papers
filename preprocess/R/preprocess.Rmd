@@ -49,7 +49,7 @@ newd <-  edges %>% group_by(link) %>% filter(n()>30) #
 occurrences <- as.data.frame(table(newd$link))
 occurrences
 ```
-Filtering by subtypes which has more than 30 occurrences,we ended up with 6 kind of relationships. However, *beneficional owener of* and *beneficiary of* can be merged as one, as they refer to same concept:
+Filtering by subtypes which has more than 30 occurrences,we ended up with 6 kind of relationships. However, *beneficional owner of* and *beneficiary of* can be merged as one, as they refer to same concept:
 
 ```{r}
 array <-  as.vector(occurrences$Var1)
@@ -71,14 +71,13 @@ Following neo4j admin import documentation[2], relationship CSV must contain 3 m
 
 We are going to overwrite 2nd column with values processed on $link$ dataframe column:
 ```{r}
-#edges_parsed$TYPE <- gsub('\\s+', '_', edges_parsed$link)
-#new_occurrencies <- table(edges_parsed$TYPE)
-#new_occurrencies
-edges_parsed$TYPE <- edges_parsed$link
+edges_parsed$TYPE <- gsub('_',' ', edges_parsed$link)
+edges_parsed$TYPE <- edges_parsed$TYPE
 ```
+
 CSV export:
 ```{r}
-write.csv(edges_parsed, file = "../../data/edges_parsed.csv",row.names = FALSE)
+write.csv(edges_parsed, file = "edges_parsed.csv",row.names = FALSE)
 ```
 
 
