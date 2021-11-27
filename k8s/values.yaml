@@ -15,3 +15,6 @@ volumes:
     defaultStorageClass:
       requests:
         storage: 2Gi
+config:
+  dbms.directories.plugins: "/var/lib/neo4j/labs"
+  dbms.security.procedures.unrestricted: "apoc.*"
