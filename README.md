@@ -7,6 +7,8 @@ Proyecto final de Máster
 
 M2.982 - TFM Area: Data Analysis and Big Data
 
+Autor: Edgar Pardo
+
 ## Índice
   * [Entorno](#entorno)
   * [Conjunto de datos](#conjunto-de-datos)
