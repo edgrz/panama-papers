@@ -1,0 +1,20 @@
+neo4j:
+  resources:
+    cpu: "3"
+    memory: "6Gi"
+
+  # Uncomment to set the initial password
+  password: "test"
+  # Uncomment to use enterprise edition
+  edition: "enterprise"
+  acceptLicenseAgreement: "yes"
+
+volumes:
+  data:
+    mode: defaultStorageClass
+    defaultStorageClass:
+      requests:
+        storage: 2Gi
+config:
+  dbms.directories.plugins: "/var/lib/neo4j/labs"
+  dbms.security.procedures.unrestricted: "apoc.*"
